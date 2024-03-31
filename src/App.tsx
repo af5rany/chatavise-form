@@ -61,7 +61,7 @@ function App() {
     reset({}, { keepValues: true, keepErrors: false });
   };
 
-  const onSubmit = (data: any) => console.log(data);
+  const onSubmit = (data: FormData) => console.log(data);
 
   // useClickOutside(overlayRef, () => handleHideModal());
 
