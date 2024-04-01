@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
@@ -6,8 +6,6 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import Joi from "joi";
 import { joiResolver } from "@hookform/resolvers/joi";
-// import { useClickOutside } from "primereact/hooks";
-// import { Button, Dialog, InputText } from "primereact";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -22,11 +20,10 @@ type FormData = {
 function App() {
   const [visible, setVisible] = useState(false);
 
-  const overlayRef = useRef(null);
   const schema = Joi.object({
     userName: Joi.string().min(3).max(30).required().messages({
-      "string.empty": "Please enter your UserName",
-      "string.min": "Please enter a valid UserName",
+      // "string.empty": "Please enter your UserName",
+      // "string.min": "Please enter a valid UserName",
     }),
     email: Joi.string()
       .required()
@@ -34,15 +31,21 @@ function App() {
         /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/
       )
       .messages({
-        "string.empty": "Please enter your email address",
-        "string.pattern.base": "Please enter a valid email address",
+        // "string.empty": "Please enter your email address",
+        // "string.pattern.base": "Please enter a valid email address",
       }),
     comment: Joi.string().min(6).required().messages({
-      "string.empty": "Please enter your Comment",
-      "string.pattern.base": "Please enter a valid Comment",
-      "string.min": "Please enter a valid Comment",
+      // "string.empty": "Please enter your Comment",
+      // "string.pattern.base": "Please enter a valid Comment",
+      // "string.min": "Please enter a valid Comment",
     }),
+  }).messages({
+    "string.empty": "{{#label}} is required ",
+    "string.min": "{{#label}} is too short",
+    "string.max": "{{#label}} is too long",
+    "string.pattern.base": "{{#label}} must be a valid email address",
   });
+
   const {
     handleSubmit,
     register,
@@ -51,42 +54,18 @@ function App() {
   } = useForm<FormData>({
     resolver: joiResolver(schema),
   });
-  // const { errors } = formState;
-  useEffect(() => {
-    console.log(errors);
-  }, [errors]);
+
   const handleShowModal = () => setVisible(true);
   const handleHideModal = () => {
     setVisible(false);
     reset({}, { keepValues: true, keepErrors: false });
   };
 
-  const onSubmit = (data: FormData) => console.log(data);
-
-  // useClickOutside(overlayRef, () => handleHideModal());
-
-  // const useOnClickOutside = (ref, handler) => {
-  //   useEffect(() => {
-  //     const listener = (event) => {
-  //       if (!ref.current || ref.current.contains(event.target)) {
-  //         return;
-  //       }
-  //       handler(event);
-  //     };
-
-  //     document.addEventListener("mousedown", listener);
-  //     document.addEventListener("touchstart", listener);
-
-  //     return () => {
-  //       document.removeEventListener("mousedown", listener);
-  //       document.removeEventListener("touchstart", listener);
-  //     };
-  //   }, [ref, handler]);
-  // };
-  // const handleClickOutside = (event: any) => {
-  //   console.log("Clicked outside element:", event.target);
-  //   handleHideModal();
-  // };
+  const handleOnSubmit = (data: FormData) => {
+    console.log(data);
+    reset();
+    setVisible(false);
+  };
 
   return (
     <div>
@@ -99,99 +78,89 @@ function App() {
         }}
         icon="pi pi-reply"
       />
-      <div
-        // onClick={handleClickOutside}
-        style={{
-          backgroundColor: "aqua",
-          // width: "50vw",
-          // height: "50vh",
-        }}
-        ref={overlayRef}
+      <Dialog
+        header="FeedBack"
+        visible={visible}
+        position={"bottom-right"}
+        onHide={() => handleHideModal()}
+        draggable={false}
+        dismissableMask={true}
+        resizable={false}
+        // style={{ width: "30vw", height: "80vh" }}
+        // footer={footerContent}
       >
-        <Dialog
-          header="FeedBack"
-          visible={visible}
-          position={"bottom-right"}
-          onHide={() => handleHideModal()}
-          draggable={false}
-          resizable={false}
-          // style={{ width: "30vw", height: "80vh" }} // Set explicit dimensions
-          // footer={footerContent}
-          // style={{ maxWidth: "18rem" }}
-        >
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div
+        <form onSubmit={handleSubmit(handleOnSubmit)}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
+            <InputText
               style={{
-                display: "flex",
-                justifyContent: "center",
-                flexDirection: "column",
-                gap: "1rem",
+                marginTop: "0.1rem",
               }}
-            >
-              <InputText
+              keyfilter="alphanum"
+              placeholder="username"
+              {...register("userName")}
+              invalid={errors.userName ? true : false}
+            />
+            {errors.userName && (
+              <p
                 style={{
-                  marginTop: "0.1rem",
+                  fontSize: "12px",
+                  color: "red",
+                  margin: 0,
                 }}
-                keyfilter="alphanum"
-                placeholder="username"
-                {...register("userName")}
-                invalid={errors.userName ? true : false}
-              />
-              {errors.userName && (
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "red",
-                    margin: 0,
-                  }}
-                >
-                  {errors.userName.message}
-                </p>
-              )}
-              <InputText
-                keyfilter="email"
-                placeholder="email"
-                {...register("email")}
-                invalid={errors.email ? true : false}
-              />
-              {errors.email && (
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "red",
-                    margin: 0,
-                  }}
-                >
-                  {errors.email.message}
-                </p>
-              )}
-              <InputTextarea
-                keyfilter="alphanum"
-                placeholder="comment"
-                {...register("comment")}
-                invalid={errors.comment ? true : false}
-              />
-              {errors.comment && (
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "red",
-                    margin: 0,
-                  }}
-                >
-                  {errors.comment.message}
-                </p>
-              )}
-              <Button
-                type="submit"
-                label="Submit"
-                severity="secondary"
-                style={{ marginTop: "0.5rem" }}
-              />
-            </div>
-          </form>
-        </Dialog>
-      </div>
+              >
+                {errors.userName.message}
+              </p>
+            )}
+            <InputText
+              keyfilter="email"
+              placeholder="email"
+              {...register("email")}
+              invalid={errors.email ? true : false}
+            />
+            {errors.email && (
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "red",
+                  margin: 0,
+                }}
+              >
+                {errors.email.message}
+              </p>
+            )}
+            <InputTextarea
+              keyfilter="alphanum"
+              placeholder="comment"
+              {...register("comment")}
+              invalid={errors.comment ? true : false}
+            />
+            {errors.comment && (
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "red",
+                  margin: 0,
+                }}
+              >
+                {errors.comment.message}
+              </p>
+            )}
+            <Button
+              type="submit"
+              label="Submit"
+              severity="secondary"
+              style={{ marginTop: "0.5rem" }}
+            />
+          </div>
+        </form>
+      </Dialog>
     </div>
   );
 }
