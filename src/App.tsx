@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
@@ -10,6 +10,7 @@ import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import "./App.css";
+import { Toast } from "primereact/toast";
 
 type FormData = {
   userName: string;
@@ -22,8 +23,8 @@ function App() {
 
   const schema = Joi.object({
     userName: Joi.string().min(3).max(30).required().messages({
-      // "string.empty": "Please enter your UserName",
-      // "string.min": "Please enter a valid UserName",
+      "string.empty": "Please enter your UserName",
+      "string.min": "Please enter a valid UserName",
     }),
     email: Joi.string()
       .required()
@@ -31,20 +32,21 @@ function App() {
         /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/
       )
       .messages({
-        // "string.empty": "Please enter your email address",
-        // "string.pattern.base": "Please enter a valid email address",
+        "string.empty": "Please enter your email address",
+        "string.pattern.base": "Please enter a valid email address",
       }),
     comment: Joi.string().min(6).required().messages({
-      // "string.empty": "Please enter your Comment",
-      // "string.pattern.base": "Please enter a valid Comment",
-      // "string.min": "Please enter a valid Comment",
+      "string.empty": "Please enter your Comment",
+      "string.pattern.base": "Please enter a valid Comment",
+      "string.min": "Please enter a valid Comment",
     }),
-  }).messages({
-    "string.empty": "{{#label}} is required ",
-    "string.min": "{{#label}} is too short",
-    "string.max": "{{#label}} is too long",
-    "string.pattern.base": "{{#label}} must be a valid email address",
   });
+  // .messages({
+  //   "string.empty": "{{#label}} is required ",
+  //   "string.min": "{{#label}} is too short",
+  //   "string.max": "{{#label}} is too long",
+  //   "string.pattern.base": "{{#label}} must be a valid email address",
+  // });
 
   const {
     handleSubmit,
@@ -60,15 +62,30 @@ function App() {
     setVisible(false);
     reset({}, { keepValues: true, keepErrors: false });
   };
+  const handleSubmitModal = () => {
+    setVisible(false);
+    reset();
+  };
 
+  const toast = useRef(null);
+
+  const show = () => {
+    toast.current?.show({
+      severity: "success",
+      summary: "Success",
+      detail: "Message sent successfully",
+      life: 3000,
+    });
+  };
   const handleOnSubmit = (data: FormData) => {
     console.log(data);
-    reset();
-    setVisible(false);
+    handleSubmitModal();
+    show();
   };
 
   return (
     <div>
+      <Toast ref={toast} />
       <Button
         onClick={() => handleShowModal()}
         style={{
@@ -86,7 +103,6 @@ function App() {
         draggable={false}
         dismissableMask={true}
         resizable={false}
-        // style={{ width: "30vw", height: "80vh" }}
         // footer={footerContent}
       >
         <form onSubmit={handleSubmit(handleOnSubmit)}>
