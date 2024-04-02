@@ -21,6 +21,8 @@ type FormData = {
 function ChataviseModal() {
   const [visible, setVisible] = useState(false);
 
+  const successToast = useRef<Toast>(null);
+
   const schema = Joi.object({
     userName: Joi.string().min(3).max(30).required().messages({
       "string.empty": "Please enter your UserName",
@@ -65,8 +67,6 @@ function ChataviseModal() {
     setVisible(false);
     reset();
   };
-
-  const successToast = useRef<Toast>(null);
 
   const show = () => {
     successToast.current?.show({
