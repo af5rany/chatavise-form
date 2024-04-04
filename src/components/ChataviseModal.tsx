@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
@@ -19,7 +19,8 @@ type FormData = {
 };
 
 function ChataviseModal() {
-  const [visible, setVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const successToast = useRef<Toast>(null);
 
@@ -50,6 +51,21 @@ function ChataviseModal() {
   //   "string.pattern.base": "{{#label}} must be a valid email address",
   // });
 
+  useEffect(() => {
+    if (toastVisible) {
+      successToast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Message sent successfully",
+        life: 3000,
+      });
+
+      setTimeout(() => {
+        setToastVisible(false);
+      }, 3000);
+    }
+  }, [toastVisible]);
+
   const {
     handleSubmit,
     register,
@@ -58,87 +74,81 @@ function ChataviseModal() {
   } = useForm<FormData>({
     resolver: joiResolver(schema),
   });
-  const handleShowModal = () => setVisible(true);
+  const handleShowModal = () => setModalVisible(true);
   const handleHideModal = () => {
-    setVisible(false);
+    setModalVisible(false);
     reset({}, { keepValues: true, keepErrors: false });
   };
   const handleSubmitModal = () => {
-    setVisible(false);
+    setModalVisible(false);
     reset();
   };
 
-  const show = () => {
-    successToast.current?.show({
-      severity: "success",
-      summary: "Success",
-      detail: "Message sent successfully",
-      life: 3000,
-    });
-  };
   const handleOnSubmit = (data: FormData) => {
     console.log(data);
     handleSubmitModal();
-    show();
+    setToastVisible(true);
   };
 
   return (
-    <div>
-      <Toast ref={successToast} />
+    <>
+      {toastVisible && <Toast ref={successToast} />}
       <Button
         onClick={() => handleShowModal()}
         className={styles.customButtonClass}
         icon="pi pi-reply"
       />
-      <Dialog
-        header="FeedBack"
-        visible={visible}
-        position={"bottom-right"}
-        onHide={() => handleHideModal()}
-        draggable={false}
-        dismissableMask={true}
-        resizable={false}
-      >
-        <form onSubmit={handleSubmit(handleOnSubmit)}>
-          <div className={styles.formContainer}>
-            <InputText
-              style={{ marginTop: "0.1rem" }}
-              keyfilter="alphanum"
-              placeholder="username"
-              {...register("userName")}
-              invalid={errors.userName ? true : false}
-            />
-            {errors.userName && (
-              <p className={styles.errorText}>{errors.userName.message}</p>
-            )}
-            <InputText
-              keyfilter="email"
-              placeholder="email"
-              {...register("email")}
-              invalid={errors.email ? true : false}
-            />
-            {errors.email && (
-              <p className={styles.errorText}>{errors.email.message}</p>
-            )}
-            <InputTextarea
-              keyfilter="alphanum"
-              placeholder="comment"
-              {...register("comment")}
-              invalid={errors.comment ? true : false}
-            />
-            {errors.comment && (
-              <p className={styles.errorText}>{errors.comment.message}</p>
-            )}
-            <Button
-              type="submit"
-              label="Submit"
-              severity="secondary"
-              style={{ marginTop: "0.5rem" }}
-            />
-          </div>
-        </form>
-      </Dialog>
-    </div>
+      {modalVisible && (
+        <Dialog
+          header="FeedBack"
+          visible={modalVisible}
+          position={"bottom-right"}
+          onHide={() => handleHideModal()}
+          draggable={false}
+          dismissableMask={true}
+          resizable={false}
+        >
+          <form onSubmit={handleSubmit(handleOnSubmit)}>
+            <div className={styles.formContainer}>
+              <InputText
+                style={{ marginTop: "0.1rem" }}
+                keyfilter="alphanum"
+                placeholder="username"
+                {...register("userName")}
+                invalid={errors.userName ? true : false}
+              />
+              {errors.userName && (
+                <p className={styles.errorText}>{errors.userName.message}</p>
+              )}
+              <InputText
+                keyfilter="email"
+                placeholder="email"
+                {...register("email")}
+                invalid={errors.email ? true : false}
+              />
+              {errors.email && (
+                <p className={styles.errorText}>{errors.email.message}</p>
+              )}
+              <InputTextarea
+                keyfilter="alphanum"
+                placeholder="comment"
+                {...register("comment")}
+                invalid={errors.comment ? true : false}
+              />
+              {errors.comment && (
+                <p className={styles.errorText}>{errors.comment.message}</p>
+              )}
+              <Button
+                type="submit"
+                label="Submit"
+                severity="secondary"
+                style={{ marginTop: "0.5rem" }}
+              />
+            </div>
+          </form>
+        </Dialog>
+      )}
+    </>
   );
 }
 
