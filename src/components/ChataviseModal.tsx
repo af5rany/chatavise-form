@@ -5,8 +5,8 @@ import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
-import Joi from "joi";
-import { joiResolver } from "@hookform/resolvers/joi";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -24,32 +24,18 @@ function ChataviseModal() {
 
   const successToast = useRef<Toast>(null);
 
-  const schema = Joi.object({
-    userName: Joi.string().min(3).max(30).required().messages({
-      "string.empty": "Please enter your UserName",
-      "string.min": "Please enter a valid UserName",
-    }),
-    email: Joi.string()
-      .required()
-      .pattern(
-        /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/
-      )
-      .messages({
-        "string.empty": "Please enter your email address",
-        "string.pattern.base": "Please enter a valid email address",
-      }),
-    comment: Joi.string().min(6).required().messages({
-      "string.empty": "Please enter your Comment",
-      "string.pattern.base": "Please enter a valid Comment",
-      "string.min": "Please enter a valid Comment",
-    }),
+  const schema = z.object({
+    userName: z
+      .string()
+      .nonempty({ message: "Name is required" })
+      .min(3, { message: "Name must be 3 or more chars long" })
+      .max(30, { message: "Name must be 15 or less chars long" }),
+    email: z.string().email({ message: "Please enter a valid email address" }),
+    comment: z
+      .string()
+      .nonempty({ message: "Comment is required" })
+      .min(6, { message: "Comment must be 6 or more chars long" }),
   });
-  // .messages({
-  //   "string.empty": "{{#label}} is required ",
-  //   "string.min": "{{#label}} is too short",
-  //   "string.max": "{{#label}} is too long",
-  //   "string.pattern.base": "{{#label}} must be a valid email address",
-  // });
 
   useEffect(() => {
     if (toastVisible) {
@@ -72,7 +58,7 @@ function ChataviseModal() {
     reset,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: joiResolver(schema),
+    resolver: zodResolver(schema),
   });
   const handleShowModal = () => setModalVisible(true);
   const handleHideModal = () => {
